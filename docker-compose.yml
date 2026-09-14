@@ -1,0 +1,30 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: "8000"
+      DATABASE_URL: "postgresql://postgres:postgres@host.docker.internal:54322/postgres"
+      CORS_ORIGINS: "http://localhost:3333"
+      EMBEDDER_URL: "http://embedder:8001"   # TODO: service ยังไม้ได้สร้างแก้อีกที
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3333:3333"
+    environment:
+      PORT: "3333"
+      NEXT_PUBLIC_API_URL: "http://localhost:8000"
+    depends_on:
+      - backend
+  
+  pipeline:
+    build: ./pipeline
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@host.docker.internal:54322/postgres"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["batch"]
