@@ -1,0 +1,6 @@
+# Work is tracked in Jira, not GitHub Issues.
+blank_issues_enabled: false
+contact_links:
+  - name: Create a ticket in Jira
+    url: https://sukonlap.atlassian.net/jira/software/projects/LAP/boards/1
+    about: All features, tasks, and spikes go to Jira (LAP-xx).

@@ -1,0 +1,9 @@
+# LF everywhere so shell scripts and hooks run on Windows/WSL too
+* text=auto eol=lf
+*.sh text eol=lf
+.githooks/* text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary

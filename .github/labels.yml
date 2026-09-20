@@ -1,0 +1,16 @@
+# Applied by scripts/setup-labels.sh. Jira owns status + priority,
+# so GitHub labels only say WHAT and WHERE.
+- { name: "type:feat",     color: "1f883d", description: "New feature" }
+- { name: "type:bug",      color: "d73a4a", description: "Something broken" }
+- { name: "type:chore",    color: "bfbfbf", description: "Tooling, deps, config" }
+- { name: "type:docs",     color: "0075ca", description: "Docs or ADR" }
+- { name: "type:spike",    color: "d4c5f9", description: "Timeboxed research" }
+- { name: "type:data",     color: "fbca04", description: "Data / annotation work" }
+- { name: "area:frontend", color: "c5def5", description: "frontend/" }
+- { name: "area:backend",  color: "c5def5", description: "backend/" }
+- { name: "area:pipeline", color: "c5def5", description: "pipeline/" }
+- { name: "area:eval",     color: "c5def5", description: "eval/" }
+- { name: "area:infra",    color: "c5def5", description: "infra/, CI, repo" }
+- { name: "blocked",       color: "b60205", description: "Waiting on someone/something" }
+- { name: "spec-exempt",   color: "fef2c0", description: "No API contract change despite handler edits" }
+- { name: "do-not-merge",  color: "b60205", description: "Draft or on hold" }
