@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Stub: no commit-msg validation yet. Exists so Git for Windows can detect
+# this as an executable hook (it sniffs for a shebang, not the file mode bit).
+exit 0
