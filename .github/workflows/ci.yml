@@ -22,6 +22,9 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -29,9 +32,7 @@ jobs:
         with:
           node-version-file: .tool-versions
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            frontend/package-lock.json
+          cache-dependency-path: '**/package-lock.json'
       - uses: actions/setup-go@v6
         if: hashFiles('backend/go.mod') != ''
         with:
@@ -49,9 +50,10 @@ jobs:
           fi
       - name: api spec moves with the API (docs/playbooks/change-the-api.md)
         if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'spec-exempt')
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch origin ${{ github.base_ref }} --depth=1
-          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          changed=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate --jq '.[].filename')
           api=$(echo "$changed" | grep -E '^backend/.*(handler|route|api).*\.go$' || true)
           spec=$(echo "$changed" | grep -E '^docs/api/openapi\.ya?ml$' || true)
           if [ -n "$api" ] && [ -z "$spec" ]; then
@@ -79,9 +81,7 @@ jobs:
         with:
           node-version-file: .tool-versions
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            frontend/package-lock.json
+          cache-dependency-path: '**/package-lock.json'
       - uses: actions/setup-go@v6
         if: hashFiles('backend/go.mod') != ''
         with:
