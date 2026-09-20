@@ -1,0 +1,137 @@
+# STUB for LAP-17 so branch protection has checks to require.
+# Owned by the CI story (E0-7) after handoff. Job names are FROZEN:
+# lint, test, pr-title, eval-gate (the rulesets match on them).
+# PRs into dev need lint/test/pr-title. PRs into main need lint/test/eval-gate.
+name: ci
+
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        if: hashFiles('package-lock.json', 'frontend/package-lock.json') != ''
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+      - uses: actions/setup-go@v6
+        if: hashFiles('backend/go.mod') != ''
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: astral-sh/setup-uv@v6
+        if: hashFiles('pipeline/pyproject.toml') != ''
+      - name: block large files and data files
+        run: |
+          big=$(git ls-files -z | xargs -0 -I{} find {} -size +1M -print 2>/dev/null || true)
+          bad=$(git ls-files | grep -Ei '\.(csv|jsonl|parquet|pt|safetensors|onnx)$' || true)
+          if [ -n "$big$bad" ]; then
+            echo "Data or large files must not live in this repo:"; echo "$big"; echo "$bad"
+            echo "Raw data belongs in private storage, see CONTRIBUTING.md"; exit 1
+          fi
+      - name: api spec moves with the API (docs/playbooks/change-the-api.md)
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'spec-exempt')
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          api=$(echo "$changed" | grep -E '^backend/.*(handler|route|api).*\.go$' || true)
+          spec=$(echo "$changed" | grep -E '^docs/api/openapi\.ya?ml$' || true)
+          if [ -n "$api" ] && [ -z "$spec" ]; then
+            echo "API code changed but docs/api/openapi.yaml did not:"; echo "$api"
+            echo "Update the spec in this PR (spec first, then code)."
+            echo "Genuinely no contract change? Add the label spec-exempt and say why."
+            exit 1
+          fi
+      - name: api spec parses
+        run: |
+          f=docs/api/openapi.yaml
+          [ -f "$f" ] || { echo "no spec yet, skipping"; exit 0; }
+          python3 -c "import yaml" 2>/dev/null || pip install --quiet pyyaml
+          python3 -c "import yaml;yaml.safe_load(open('$f'));print('spec parses')"
+      - run: make setup
+      - run: make lint
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        if: hashFiles('package-lock.json', 'frontend/package-lock.json') != ''
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+      - uses: actions/setup-go@v6
+        if: hashFiles('backend/go.mod') != ''
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: astral-sh/setup-uv@v6
+        if: hashFiles('pipeline/pyproject.toml') != ''
+      - run: make setup
+      - run: make test
+
+  eval-gate:
+    name: eval-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: make eval
+
+  pr-title:
+    name: pr-title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+            spike
+            data
+          scopes: |
+            release
+            frontend
+            backend
+            pipeline
+            eval
+            infra
+            docs
+            repo
+            deps
+          requireScope: false

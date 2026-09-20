@@ -1,0 +1,14 @@
+# Auto-requests a reviewer by path. Review is NOT required from owners
+# (ruleset: require_code_owner_review=false) so nobody becomes a bottleneck.
+# Last match wins. Keep in sync when someone changes area.
+
+*                   @Zurusfig @Mee1296 @SuK014 @tangenn
+
+/frontend/          @Zurusfig
+/backend/           @Mee1296
+/pipeline/          @SuK014
+/eval/              @tangenn
+/infra/             @Zurusfig
+/docs/              @Zurusfig
+/.github/           @Zurusfig
+/Makefile           @Zurusfig

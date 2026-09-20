@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+# Local guard. Works on any GitHub plan. Skip once with: git push --no-verify
+zero=0000000000000000000000000000000000000000
+pattern='^(feat|fix|hotfix|chore|docs|refactor|test|ci|spike|data)/LAP-[0-9]+-[a-z0-9-]+$'
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/dev) echo "x direct push to ${remote_ref#refs/heads/} blocked. open a PR."; exit 1 ;;
+    refs/heads/*) ;;
+    *) continue ;;                      # tags etc.
+  esac
+  [ "$local_sha" = "$zero" ] && continue # branch deletion
+  name=${remote_ref#refs/heads/}
+  if ! printf '%s' "$name" | grep -Eq "$pattern"; then
+    echo "x branch '$name' must match <type>/LAP-<id>-<slug>"
+    echo "  e.g. feat/LAP-19-init-frontend"
+    echo "  fix: git branch -m <new-name>"
+    exit 1
+  fi
+done
+
+make lint
