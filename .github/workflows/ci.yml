@@ -96,8 +96,9 @@ jobs:
       - name: migrations apply to a fresh database
         if: hashFiles('supabase/migrations/*.sql') != ''
         run: |
-          npx supabase db start
-          npx supabase migration list --local
+          # The CLI version pinned in package-lock.json, installed by make setup.
+          ./node_modules/.bin/supabase db start
+          ./node_modules/.bin/supabase migration list --local
 
   eval-gate:
     name: eval-gate
