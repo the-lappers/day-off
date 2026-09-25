@@ -1,6 +1,5 @@
-# STUB for LAP-17 so branch protection has checks to require.
-# Owned by the CI story (E0-7) after handoff. Job names are FROZEN:
-# lint, test, pr-title, eval-gate (the rulesets match on them).
+# Checks every PR into dev or main, and every push to them (LAP-24).
+# Job names are FROZEN: lint, test, pr-title, eval-gate (the rulesets match on them).
 # PRs into dev need lint/test/pr-title. PRs into main need lint/test/eval-gate.
 name: ci
 
@@ -91,6 +90,14 @@ jobs:
         if: hashFiles('pipeline/pyproject.toml') != ''
       - run: make setup
       - run: make test
+      - name: frontend builds
+        if: hashFiles('frontend/package.json') != ''
+        run: npm --prefix frontend run build
+      - name: migrations apply to a fresh database
+        if: hashFiles('supabase/migrations/*.sql') != ''
+        run: |
+          npx supabase db start
+          npx supabase migration list --local
 
   eval-gate:
     name: eval-gate

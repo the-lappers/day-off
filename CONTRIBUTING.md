@@ -149,10 +149,12 @@ Never open a PR with `main` itself as the head branch (auto-delete could remove 
 
 | Check | Fails when |
 |---|---|
-| `lint` | Lint errors, a file over 1 MB, a data file (`.csv`, `.jsonl`, `.parquet`, weights) |
+| `lint` | Lint or TypeScript errors, a file over 1 MB, a data file (`.csv`, `.jsonl`, `.parquet`, weights) |
 | `lint` | Go handler or route changed without touching `docs/api/openapi.yaml` (label `spec-exempt` to override, and say why) |
 | `lint` | `docs/api/openapi.yaml` doesn't parse |
 | `test` | Tests fail |
+| `test` | `frontend/` fails `next build` |
+| `test` | A migration in `supabase/migrations/` fails to apply to a fresh database |
 | `pr-title` | Title isn't `type(scope): summary` |
 | `eval-gate` | Retrieval quality drops (stub for now, required on `main`) |
 
