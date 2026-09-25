@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: Day-Off API
+  version: 0.1.0
+  description: >-
+    Contract between the Go API (backend/) and the frontend, and the source of truth for
+    every endpoint. Change it spec first, in the same PR as the handler:
+    docs/playbooks/change-the-api.md.
+servers:
+  - url: http://localhost:8000
+    description: Local stack (make dev)
+tags:
+  - name: ops
+    description: Operational endpoints
+paths:
+  /healthz:
+    get:
+      tags: [ops]
+      operationId: getHealth
+      summary: API and database health
+      description: >-
+        200 when the API is running and Postgres answers a ping within 2 seconds. 503 when
+        the API is running but the database is unreachable.
+      responses:
+        '200':
+          description: API and database are reachable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              example:
+                status: ok
+                database: ok
+        '503':
+          description: API is running but the database is unreachable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              example:
+                status: unavailable
+                database: unreachable
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status, database]
+      properties:
+        status:
+          type: string
+          enum: [ok, unavailable]
+        database:
+          type: string
+          enum: [ok, unreachable]

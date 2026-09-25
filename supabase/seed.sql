@@ -1,0 +1,2 @@
+-- Local seed data. `npx supabase db reset` runs this after every migration.
+-- Fake sample rows only: never real reviews, scraped content, or Google Places data.
