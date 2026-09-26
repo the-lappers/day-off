@@ -1,0 +1,25 @@
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          STATE: ${{ github.event.deployment_status.state }}
+          ENVIRONMENT: ${{ github.event.deployment.environment }}
+          TARGET_URL: ${{ github.event.deployment_status.target_url }}
+          REF: ${{ github.event.deployment.ref }}
+          ACTOR: ${{ github.event.deployment_status.creator.login }}
+        run: |
+          if [ "$STATE" = "success" ]; then COLOR=3066993; else COLOR=15158332; fi
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"Deployment $STATE\",
+                \"url\": \"$TARGET_URL\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  {\"name\": \"Environment\", \"value\": \"$ENVIRONMENT\", \"inline\": true},
+                  {\"name\": \"Branch\", \"value\": \"$REF\", \"inline\": true},
+                  {\"name\": \"Triggered by\", \"value\": \"$ACTOR\", \"inline\": true}
+                ],
+                \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+              }]
+            }" \
+            "$DISCORD_WEBHOOK_URL"
