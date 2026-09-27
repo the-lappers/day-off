@@ -8,16 +8,31 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure' || github.event.deployment_status.state == 'error'
     steps:
+      - name: Debug event payload
+        run: echo '${{ toJSON(github.event) }}'
+
+      - name: Look up commit info
+        id: commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DATA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.event.deployment.sha }}")
+          echo "author=$(echo "$DATA" | jq -r '.commit.author.name')" >> "$GITHUB_OUTPUT"
+          echo "message=$(echo "$DATA" | jq -r '.commit.message' | head -n1)" >> "$GITHUB_OUTPUT"
+
       - name: Send Discord notification
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           STATE: ${{ github.event.deployment_status.state }}
           ENVIRONMENT: ${{ github.event.deployment.environment }}
           TARGET_URL: ${{ github.event.deployment_status.target_url }}
-          REF: ${{ github.event.deployment.ref }}
-          ACTOR: ${{ github.event.deployment_status.creator.login }}
+          SHA_FULL: ${{ github.event.deployment.sha }}
+          AUTHOR: ${{ steps.commit.outputs.author }}
+          COMMIT_MSG: ${{ steps.commit.outputs.message }}
         run: |
           if [ "$STATE" = "success" ]; then COLOR=3066993; else COLOR=15158332; fi
+          SHORT_SHA="${SHA_FULL:0:7}"
           curl -X POST -H "Content-Type: application/json" \
             -d "{
               \"embeds\": [{
@@ -26,8 +41,9 @@ jobs:
                 \"color\": $COLOR,
                 \"fields\": [
                   {\"name\": \"Environment\", \"value\": \"$ENVIRONMENT\", \"inline\": true},
-                  {\"name\": \"Branch\", \"value\": \"$REF\", \"inline\": true},
-                  {\"name\": \"Triggered by\", \"value\": \"$ACTOR\", \"inline\": true}
+                  {\"name\": \"Commit\", \"value\": \"$SHORT_SHA\", \"inline\": true},
+                  {\"name\": \"Author\", \"value\": \"$AUTHOR\", \"inline\": true},
+                  {\"name\": \"Message\", \"value\": \"$COMMIT_MSG\", \"inline\": false}
                 ],
                 \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
               }]
