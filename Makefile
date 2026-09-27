@@ -37,7 +37,7 @@ pipeline: ## Run the nightly data pipeline once (batch job)
 	docker compose --profile batch run pipeline
 
 lint: ## Lint every part that exists
-	@if [ -f $(FE)/package.json ]; then echo "> frontend"; (cd $(FE) && npm run lint); else echo "skip frontend"; fi
+	@if [ -f $(FE)/package.json ]; then echo "> frontend"; (cd $(FE) && npm run lint && npx next typegen && npx tsc --noEmit); else echo "skip frontend"; fi
 	@if [ -n "$$(find $(BE) -name '*.go' -print -quit 2>/dev/null)" ]; then echo "> backend"; (cd $(BE) && out=$$(gofmt -l .) && { [ -z "$$out" ] || { echo "gofmt needed:"; echo "$$out"; exit 1; }; } && go vet ./...); else echo "skip backend (no .go files yet)"; fi
 	@if [ -f $(PL)/pyproject.toml ]; then echo "> pipeline"; (cd $(PL) && uv run ruff check . && uv run ruff format --check .); else echo "skip pipeline"; fi
 
