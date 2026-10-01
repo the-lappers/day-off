@@ -25,7 +25,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v5
         if: hashFiles('package-lock.json', 'frontend/package-lock.json') != ''
         with:
@@ -74,7 +74,7 @@ jobs:
     name: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v5
         if: hashFiles('package-lock.json', 'frontend/package-lock.json') != ''
         with:
@@ -104,7 +104,7 @@ jobs:
     name: eval-gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7.0.1
       - run: make eval
 
   pr-title:
