@@ -26,7 +26,7 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         if: hashFiles('package-lock.json', 'frontend/package-lock.json') != ''
         with:
           node-version-file: .tool-versions
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         if: hashFiles('package-lock.json', 'frontend/package-lock.json') != ''
         with:
           node-version-file: .tool-versions
