@@ -32,7 +32,7 @@ jobs:
           node-version-file: .tool-versions
           cache: npm
           cache-dependency-path: '**/package-lock.json'
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         if: hashFiles('backend/go.mod') != ''
         with:
           go-version-file: backend/go.mod
@@ -81,7 +81,7 @@ jobs:
           node-version-file: .tool-versions
           cache: npm
           cache-dependency-path: '**/package-lock.json'
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         if: hashFiles('backend/go.mod') != ''
         with:
           go-version-file: backend/go.mod
